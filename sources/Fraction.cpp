@@ -8,40 +8,46 @@ namespace ariel
 {
     Fraction::Fraction()
     {
-        this->n = 0;
-        this->d = 1;
+        this->num = 0;
+        this->den = 1;
     }
     Fraction::Fraction(int a, int b)
     {
         if (b == 0)
         {
-            throw std::runtime_error("Invalid fraction: denominator cannot be zero.");
+            throw std::invalid_argument("invalid_argument");
         }
         else if (a == 0)
         {
-            this->n = 0;
-            this->d = 1;
+            this->num = 0;
+            this->den = 1;
         }
         else
         {
-            this->n = a;
-            this->d = b;
+            if (b < 0)
+            {
+                a = -a;
+                b = -b;
+            }
+            this->num = a;
+            this->den = b;
             this->reduce();
         }
     }
+
     Fraction::Fraction(float f)
     {
-        this->n = f * 1000;
-        this->d = 1000;
+        this->num = f * 1000;
+        this->den = 1000;
         this->reduce();
     }
     void Fraction::set_n(int a)
     {
-        this->n = a;
+        this->num = a;
     }
     void Fraction::set_d(int b)
     {
-        this->d = b;
+        this->den = b;
     }
 
     Fraction Fraction::get_fraction()
@@ -50,18 +56,18 @@ namespace ariel
     }
     int Fraction::getNumerator()
     {
-        return this->n;
+        return this->num;
     }
     int Fraction::getDenominator()
     {
-        return this->d;
+        return this->den;
     }
 
     Fraction operator+(const Fraction &f1, const Fraction &f2)
     {
         // Calculate the sum of the two fractions
-        int sum_of_n = (f1.n * f2.d) + (f1.d * f2.n);
-        int sum_of_d = f1.d * f2.d;
+        int sum_of_n = (f1.num * f2.den) + (f1.den * f2.num);
+        int sum_of_d = f1.den * f2.den;
         Fraction new_fraction = Fraction(sum_of_n, sum_of_d);
         new_fraction.reduce();
         return new_fraction;
@@ -80,8 +86,8 @@ namespace ariel
     Fraction operator-(const Fraction &f1, const Fraction &f2)
     {
         // Calculate the sum of the two fractions
-        int dif_of_n = (f1.n * f2.d) - (f1.d * f2.n);
-        int mul_of_d = f1.d * f2.d;
+        int dif_of_n = (f1.num * f2.den) - (f1.den * f2.num);
+        int mul_of_d = f1.den * f2.den;
         Fraction new_fraction = Fraction(dif_of_n, mul_of_d);
         return new_fraction;
     }
@@ -99,9 +105,9 @@ namespace ariel
 
     Fraction operator*(const Fraction &f1, const Fraction &f2)
     {
-        int n = f1.n * f2.n;
-        int d = f1.d * f2.d;
-        Fraction new_fraction = Fraction(n, d);
+        int num = f1.num * f2.num;
+        int d = f1.den * f2.den;
+        Fraction new_fraction = Fraction(num, d);
         return new_fraction;
     }
 
@@ -120,12 +126,12 @@ namespace ariel
 
     Fraction operator/(const Fraction &f1, const Fraction &f2)
     {
-        if (f2.n == 0)
+        if (f2.num == 0)
         {
             throw std::runtime_error("Invalid fraction: denominator cannot be zero.");
         }
-        int new_n = f1.n * f2.d;
-        int new_d = f1.d * f2.n;
+        int new_n = f1.num * f2.den;
+        int new_d = f1.den * f2.num;
         Fraction res(new_n, new_d);
         return res;
     }
@@ -141,23 +147,59 @@ namespace ariel
     }
     bool operator==(const Fraction &f1, const Fraction &f2)
     {
-        Fraction temp = f2;
-        return (f1.n == temp.n) && (f1.d == temp.d);
+
+        float fractionValue1 = (float)f1.num / f1.den;
+        float fractionValue2 = (float)f2.num / f2.den;
+
+        std::string numStr1 = std::to_string(fractionValue1);
+        std::string numStr2 = std::to_string(fractionValue2); // fixed typo
+        float numRounded1 = std::stof(numStr1.substr(0, numStr1.find('.') + 4));
+        float numRounded2 = std::stof(numStr2.substr(0, numStr2.find('.') + 4));
+
+        // cout << std::to_string(numRounded) <<endl;
+        return numRounded1 == numRounded2;
     }
     bool operator==(const Fraction &f, float d)
     {
-        Fraction t(d);
-        return f == t;
+        float fractionValue = (float)f.num / f.den;
+        std::string numStr = std::to_string(fractionValue);
+        float numRounded = std::stof(numStr.substr(0, numStr.find('.') + 4));
+        return numRounded == d;
     }
+    // bool operator==(const Fraction &f, float d)
+    // {
+    //     Fraction t(d);
+    //     cout << f.toString() <<endl;
+    //     cout << t.toString() <<endl;
+
+    //     return f == t;
+    // }
     bool operator==(float d, const Fraction &f)
     {
-        Fraction t(d);
-        return f == t;
+        float fractionValue = (float)f.num / f.den;
+        std::string numStr = std::to_string(fractionValue);
+        float numRounded = std::stof(numStr.substr(0, numStr.find('.') + 4));
+        return numRounded == d;
     }
+    bool operator!=(const Fraction &f1, const Fraction &f2)
+    {
+        float fractionValue1 = (float)f1.num / f1.den;
+        float fractionValue2 = (float)f2.num / f2.den;
+        std::string numStr1 = std::to_string(fractionValue1);
+        std::string numStr2 = std::to_string(fractionValue1);
+        float numRounded1 = std::stof(numStr1.substr(0, numStr1.find('.') + 4));
+        float numRounded2 = std::stof(numStr2.substr(0, numStr2.find('.') + 4));
+
+        // cout << std::to_string(numRounded) <<endl;
+        return numRounded1 == numRounded2;
+        // Fraction temp = f2;
+        // return (f1.num == temp.num) && (f1.d == temp.d);
+    }
+
     bool operator>(const Fraction &f1, const Fraction &f2)
     {
-        int n_a = f1.n * f2.d;
-        int n_b = f2.n * f1.d;
+        int n_a = f1.num * f2.den;
+        int n_b = f2.num * f1.den;
 
         // Compare the numerators of the two fractions
         return n_a > n_b;
@@ -174,8 +216,9 @@ namespace ariel
     }
     bool operator>=(const Fraction &f1, const Fraction &f2)
     {
-        int n_a = f1.n * f2.d;
-        int n_b = f2.n * f1.d;
+
+        int n_a = f1.num * f2.den;
+        int n_b = f2.num * f1.den;
 
         // Compare the numerators of the two fractions
         return n_a >= n_b;
@@ -192,8 +235,8 @@ namespace ariel
     }
     bool operator<(const Fraction &f1, const Fraction &f2)
     {
-        int n_a = f1.n * f2.d;
-        int n_b = f2.n * f1.d;
+        int n_a = f1.num * f2.den;
+        int n_b = f2.num * f1.den;
 
         // Compare the numerators of the two fractions
         return n_a < n_b;
@@ -210,9 +253,9 @@ namespace ariel
     }
     bool operator<=(const Fraction &f1, const Fraction &f2)
     {
-        int n_a = f1.n * f2.d;
-        int n_b = f2.n * f1.d;
 
+        int n_a = f1.num * f2.den;
+        int n_b = f2.num * f1.den;
         // Compare the numerators of the two fractions
         return n_a <= n_b;
     }
@@ -228,14 +271,14 @@ namespace ariel
     }
     Fraction &Fraction::operator++()
     {
-        this->n = this->n + this->d;
+        this->num = this->num + this->den;
         this->reduce();
 
         return *this;
     }
     Fraction &Fraction::operator--()
     {
-        this->n = this->n - this->d;
+        this->num = this->num - this->den;
         this->reduce();
         return *this;
     }
@@ -259,68 +302,88 @@ namespace ariel
     //     return stream;
     // }
 
-    std::ostream& operator<<(std::ostream& os, const Fraction& f) 
+    std::ostream &operator<<(std::ostream &os, const Fraction &f)
     {
-    Fraction t = f;
-    os << t.getNumerator() << "/" << t.getDenominator();
-    return os;
-}
-
-std::istream& operator>>(std::istream& is, Fraction& f) {
-    std::string input_str;
-    std::getline(is, input_str);
-
-    if (input_str.length() <= 1) {
-        throw std::runtime_error("Invalid stream");
+        Fraction t = f;
+        os << t.getNumerator() << "/" << t.getDenominator();
+        return os;
     }
 
-    char delimiter = ' ';
-    size_t pos = input_str.find(delimiter);
+    std::istream &operator>>(std::istream &is, Fraction &f)
+    {
+        std::string input_str;
+        std::getline(is, input_str);
 
-    if (pos == std::string::npos) {
-        delimiter = ',';
-        pos = input_str.find(delimiter);
+        if (input_str.length() <= 1)
+        {
+            throw std::runtime_error("Invalid stream");
+        }
+
+        char delimiter = ' ';
+        size_t pos = input_str.find(delimiter);
+
+        if (pos == std::string::npos)
+        {
+            delimiter = ',';
+            pos = input_str.find(delimiter);
+        }
+
+        if (pos == std::string::npos)
+        {
+            delimiter = '/';
+            pos = input_str.find(delimiter);
+        }
+
+        if (pos == std::string::npos)
+        {
+            throw std::runtime_error("Invalid stream");
+        }
+
+        std::string num_str = input_str.substr(0, pos);
+        std::string denom_str = input_str.substr(pos + 1);
+
+        int num = std::stoi(num_str);
+        int d = std::stoi(denom_str);
+
+        f.set_n(num);
+        f.set_d(d);
+
+        return is;
     }
-
-    if (pos == std::string::npos) {
-        delimiter = '/';
-        pos = input_str.find(delimiter);
-    }
-
-    if (pos == std::string::npos) {
-        throw std::runtime_error("Invalid stream");
-    }
-
-    std::string num_str = input_str.substr(0, pos);
-    std::string denom_str = input_str.substr(pos+1);
-
-    int n = std::stoi(num_str);
-    int d = std::stoi(denom_str);
-
-    f.set_n(n);
-    f.set_d(d);
-
-    return is;
-}
-
-
 
     // std::istream &operator>>(std::istream &stream, Fraction &f)
     // {
     //     char s;
-    //     stream >> f.n >> s >> f.d;
+    //     stream >> f.num >> s >> f.d;
     //     f.reduce();
     //     return stream;
     // }
     void Fraction::reduce()
     {
+        // Keep track of the signs of the numerator and denominator
+        int num_sign = 1;
+        int denom_sign = 1;
+
+        if (this->num < 0)
+        {
+            num_sign = -1;
+            this->num = -this->num;
+        }
+
+        if (this->den < 0)
+        {
+            denom_sign = -1;
+            this->den = -this->den;
+        }
+
         // Find the greatest common divisor of the numerator and denominator
-        int gcd = this->gcd(this->n, this->d);
+        int gcd = this->gcd(this->num, this->den);
 
         // Divide the numerator and denominator by the gcd to reduce the fraction
-        this->n = this->n / gcd;
-        this->d = this->d / gcd;
+        this->num = num_sign * (this->num / gcd);
+        this->den = denom_sign * (this->den / gcd);
     }
+
     int Fraction::gcd(int a, int b)
     {
         if (b == 0)
@@ -332,7 +395,7 @@ std::istream& operator>>(std::istream& is, Fraction& f) {
 
     string Fraction::toString() const
     {
-        return std::to_string(this->n) + '/' + std::to_string(this->d);
+        return std::to_string(this->num) + '/' + std::to_string(this->den);
     }
 
 }
