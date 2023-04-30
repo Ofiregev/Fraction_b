@@ -3,6 +3,7 @@
 #include <numeric>
 #include <iomanip>
 #include <math.h>
+#include <limits>
 #include "Fraction.hpp"
 namespace ariel
 {
@@ -47,6 +48,9 @@ namespace ariel
     }
     void Fraction::set_d(int b)
     {
+        if(b == 0){
+            throw std::runtime_error("invalid_argument");
+        }
         this->den = b;
     }
 
@@ -63,15 +67,17 @@ namespace ariel
         return this->den;
     }
 
-    Fraction operator+(const Fraction &f1, const Fraction &f2)
-    {
-        // Calculate the sum of the two fractions
-        int sum_of_n = (f1.num * f2.den) + (f1.den * f2.num);
-        int sum_of_d = f1.den * f2.den;
-        Fraction new_fraction = Fraction(sum_of_n, sum_of_d);
-        new_fraction.reduce();
-        return new_fraction;
+   Fraction operator+(const Fraction& f1, const Fraction& f2)
+{
+    long long num = static_cast<long long>(f1.num) * static_cast<long long>(f2.den) +
+                    static_cast<long long>(f2.num) * static_cast<long long>(f1.den);
+    if (num > std::numeric_limits<int>::max() || num < std::numeric_limits<int>::min()) {
+        throw std::overflow_error("problamatic number!");
     }
+    int d = f1.den * f2.den;
+    Fraction new_fraction = Fraction(static_cast<int>(num), d);
+    return new_fraction;
+}
 
     Fraction operator+(float d, const Fraction &f)
     {
@@ -83,14 +89,17 @@ namespace ariel
         Fraction t(d);
         return t + f;
     }
-    Fraction operator-(const Fraction &f1, const Fraction &f2)
-    {
-        // Calculate the sum of the two fractions
-        int dif_of_n = (f1.num * f2.den) - (f1.den * f2.num);
-        int mul_of_d = f1.den * f2.den;
-        Fraction new_fraction = Fraction(dif_of_n, mul_of_d);
-        return new_fraction;
+    Fraction operator-(const Fraction& f1, const Fraction& f2)
+{
+    long long num = static_cast<long long>(f1.num) * static_cast<long long>(f2.den) -
+                    static_cast<long long>(f2.num) * static_cast<long long>(f1.den);
+    if (num > std::numeric_limits<int>::max() || num < std::numeric_limits<int>::min()) {
+        throw std::overflow_error("problamatic number!");
     }
+    int d = f1.den * f2.den;
+    Fraction new_fraction = Fraction(static_cast<int>(num), d);
+    return new_fraction;
+}
 
     Fraction operator-(float d, const Fraction &f)
     {
@@ -103,13 +112,19 @@ namespace ariel
         return f - t;
     }
 
-    Fraction operator*(const Fraction &f1, const Fraction &f2)
-    {
-        int num = f1.num * f2.num;
-        int d = f1.den * f2.den;
-        Fraction new_fraction = Fraction(num, d);
-        return new_fraction;
+    Fraction operator*(const Fraction& f1, const Fraction& f2)
+{
+    long long num = static_cast<long long>(f1.num) * static_cast<long long>(f2.num);
+    if (num > std::numeric_limits<int>::max() || num < std::numeric_limits<int>::min()) {
+        throw std::overflow_error("problamatic number!");
     }
+    long long d = static_cast<long long>(f1.den) * static_cast<long long>(f2.den);
+    if (d > std::numeric_limits<int>::max() || d < std::numeric_limits<int>::min()) {
+        throw std::overflow_error("problamatic number!");
+    }
+    Fraction new_fraction = Fraction(static_cast<int>(num), static_cast<int>(d));
+    return new_fraction;
+}
 
     Fraction operator*(float d, const Fraction &f)
     {
@@ -124,17 +139,24 @@ namespace ariel
         return t * f;
     }
 
-    Fraction operator/(const Fraction &f1, const Fraction &f2)
-    {
-        if (f2.num == 0)
-        {
-            throw std::runtime_error("Invalid fraction: denominator cannot be zero.");
-        }
-        int new_n = f1.num * f2.den;
-        int new_d = f1.den * f2.num;
-        Fraction res(new_n, new_d);
-        return res;
+   Fraction operator/(const Fraction& f1, const Fraction& f2)
+{
+    if (f2.num == 0) {
+        throw std::runtime_error("Invalid fraction: denominator cannot be zero.");
     }
+    long long num = static_cast<long long>(f1.num) * static_cast<long long>(f2.den);
+    long long den = static_cast<long long>(f1.den) * static_cast<long long>(f2.num);
+    if (den == 0) {
+        throw std::overflow_error("division by zero or problematic number!");
+    }
+    if (num > std::numeric_limits<int>::max() || num < std::numeric_limits<int>::min() ||
+        den > std::numeric_limits<int>::max() || den < std::numeric_limits<int>::min()) {
+        throw std::overflow_error("problamatic number!");
+    }
+    Fraction new_fraction = Fraction(static_cast<int>(num), static_cast<int>(den));
+    return new_fraction;
+}
+
     Fraction operator/(float d, const Fraction &f)
     {
         Fraction t(d);
@@ -302,54 +324,60 @@ namespace ariel
     //     return stream;
     // }
 
-    std::ostream &operator<<(std::ostream &os, const Fraction &f)
-    {
-        Fraction t = f;
-        os << t.getNumerator() << "/" << t.getDenominator();
-        return os;
+  std::ostream& operator<<(std::ostream& os, const Fraction& f)
+{
+    Fraction t = f;
+    if (t.getDenominator() < 0) {
+        // Make the denominator positive by flipping the sign of both numerator and denominator
+        t.set_n(-t.getNumerator());
+        t.set_d(-t.getDenominator());
+    }
+    os << t.getNumerator() << "/" << t.getDenominator();
+    return os;
+}
+
+
+ 
+
+std::istream& operator>>(std::istream& is, Fraction& f)
+{
+    int num = 0, denom = 1;
+    int sign = 1;
+    bool in_num = true;
+
+    // Read the numerator
+    if (!(is >> num)) {
+        // Failed to read numerator
+        throw std::runtime_error("Failed to read numerator");
     }
 
-    std::istream &operator>>(std::istream &is, Fraction &f)
-    {
-        std::string input_str;
-        std::getline(is, input_str);
-
-        if (input_str.length() <= 1)
-        {
-            throw std::runtime_error("Invalid stream");
-        }
-
-        char delimiter = ' ';
-        size_t pos = input_str.find(delimiter);
-
-        if (pos == std::string::npos)
-        {
-            delimiter = ',';
-            pos = input_str.find(delimiter);
-        }
-
-        if (pos == std::string::npos)
-        {
-            delimiter = '/';
-            pos = input_str.find(delimiter);
-        }
-
-        if (pos == std::string::npos)
-        {
-            throw std::runtime_error("Invalid stream");
-        }
-
-        std::string num_str = input_str.substr(0, pos);
-        std::string denom_str = input_str.substr(pos + 1);
-
-        int num = std::stoi(num_str);
-        int d = std::stoi(denom_str);
-
-        f.set_n(num);
-        f.set_d(d);
-
-        return is;
+    // Check for negative sign
+    char c = is.peek();
+    if (c == '-') {
+        sign = -1;
+        is.ignore(1);
     }
+
+    // Read the denominator
+    if (!(is >> denom)) {
+        // Failed to read denominator
+        throw std::runtime_error("Failed to read denominator");
+    }
+
+    if (denom == 0) {
+        // Denominator cannot be zero
+        throw std::runtime_error("Denominator cannot be zero");
+    }
+
+    f.set_n(num * sign);
+    f.set_d(denom);
+
+    return is;
+}
+
+
+
+
 
     // std::istream &operator>>(std::istream &stream, Fraction &f)
     // {
